@@ -3,6 +3,7 @@ __precompile__()
 module FluxExtensions
 
 using Flux
+using Flux.Tracker: data
 using ForwardDiff
 using CoordinateTransformations
 
@@ -10,10 +11,11 @@ const value = Flux.Tracker.data
 
 activation(σ) = x -> σ.(x)
 
-plain(layer::Dense) = activation(layer.σ) ∘ AffineMap(value(layer.W), value(layer.b))
-plain(t::Transformation) = t
-plain(f::Function) = f
-plain(chain::Chain) = reduce(∘, identity, plain.(reverse(chain.layers)))
+Base.@deprecate plain(x) untrack(x)
+
+untrack(layer::Dense) = activation(layer.σ) ∘ AffineMap(value(layer.W), value(layer.b))
+untrack(f::Union{Function, Transformation}) = (@assert isempty(params(f)); f)
+untrack(chain::Chain) = foldl(∘, identity, untrack.(reverse(chain.layers)))
 
 struct TangentPropagator{F <: Function, C}
     f::F

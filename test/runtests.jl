@@ -25,7 +25,7 @@ using CoordinateTransformations
     ]
     for m in models
         mp = FluxExtensions.TangentPropagator(m)
-        p = FluxExtensions.plain(m)
+        p = FluxExtensions.untrack(m)
 
         for i in 1:100
             x = randn(1)
